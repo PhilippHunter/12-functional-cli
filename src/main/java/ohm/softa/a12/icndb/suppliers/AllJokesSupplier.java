@@ -21,13 +21,17 @@ public final class AllJokesSupplier implements Supplier<ResponseWrapper<JokeDto>
     private int numberOfJokes;
     private int currentJoke;
 
-    public AllJokesSupplier() throws ExecutionException, InterruptedException {
+    public AllJokesSupplier() {
         icndbApi = ICNDBService.getInstance();
         /* TODO fetch the total count of jokes the API is aware of
          * to determine when all jokes are iterated and the counters have to be reset */
-
         currentJoke = 0;
-        numberOfJokes = icndbApi.getJokeCount().thenApply(ResponseWrapper::getValue).get();
+
+        try {
+        	numberOfJokes = icndbApi.getJokeCount().get().getValue();
+		} catch (ExecutionException | InterruptedException e) {
+        	numberOfJokes = 0;
+		}
     }
 
     public ResponseWrapper<JokeDto> get() {
@@ -37,14 +41,18 @@ public final class AllJokesSupplier implements Supplier<ResponseWrapper<JokeDto>
          * if you retrieved all jokes (count how many jokes you successfully fetched from the API)
          * reset the counters and continue at the beginning */
 
-		ResponseWrapper<JokeDto> joke = null;
+        if (numberOfJokes == 0) return null;
 
-		try {
-			joke = icndbApi.getJoke(currentJoke).get();
-		} catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-		}
-		currentJoke++;
+		ResponseWrapper<JokeDto> joke;
+
+		do {
+			try {
+				joke = icndbApi.getJoke(currentJoke++ % numberOfJokes).get();
+			} catch (InterruptedException | ExecutionException e) {
+				joke = null;
+			}
+		} while (joke == null);
+
 		return joke;
     }
 
