@@ -6,11 +6,13 @@ import ohm.softa.a12.model.JokeDto;
 import ohm.softa.a12.model.ResponseWrapper;
 import org.apache.commons.lang3.NotImplementedException;
 
+import java.util.function.Supplier;
+
 /**
  * @author Peter Kurfer
  */
 
-public final class RandomJokeSupplier {
+public final class RandomJokeSupplier implements Supplier<ResponseWrapper<JokeDto>> {
 
     /* ICNDB API proxy to retrieve jokes */
     private final ICNDBApi icndbApi;
